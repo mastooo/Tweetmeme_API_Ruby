@@ -1,2 +1,6 @@
-This only goal of this project is to try stuff as I learn ruby. It's going to be a real mess really soon (or maybe it's already a mess).
+The only goal of this project is to try stuff as I learn ruby. It's going to be a real mess really soon (or maybe it's already a mess).
+
+v0.000001: It's an TweetMeme API wrapper, for the fun
+
+see test/test.rb to see how to use it
 
