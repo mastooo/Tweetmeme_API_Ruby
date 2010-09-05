@@ -78,6 +78,6 @@ class TestTest < Test::Unit::TestCase
 
 end
 
-# t = TweetMeme.new() 
-# t.media = Media::Image
-# puts t.getMemes().inspect
+t = TweetMeme.new(format=Format::Json, category="technology", media=Media::News, style=Style::Day)
+t.media = Media::Image
+puts t.getMemes().inspect
