@@ -1,6 +1,8 @@
 require 'rubygems'
 require 'json'
 require 'net/http'
+require 'rexml/document'
+
 
 module Format
   Json = "json"
@@ -77,22 +79,38 @@ class TweetMeme
          uri= add_param_to_uri(uri, :media.to_s, "#{@media}")
     end
     
-    json_string = Net::HTTP.get URI.parse(uri)
-    
-    begin
-      i = 0;
-      memes = []
-      json = JSON.parse(json_string)
-      if(json["status"].eql?("success")) then
-        json["stories"].each { |story| 
-          meme = Meme.new story["title"], story["url"], @media, story["created_at"], story["excerpt"]
-          memes[i] = meme
-          i=i+1
-        }
-        memes
+    uri_result = Net::HTTP.get URI.parse(uri)
+    memes = []
+    i = 0;
+    if(@format.eql?(Format::Json)) then
+      begin       
+        json = JSON.parse(uri_result)
+        if(json["status"].eql?("success")) then
+          json["stories"].each do |story| 
+            meme = Meme.new story["title"], story["url"], @media, story["created_at"], story["excerpt"]
+            memes[i] = meme
+            i=i+1
+          end
+          memes
+        end
+      rescue Exception => e
+         puts e.backtrace.inspect
       end
-    rescue Exception => e
-      nil
+    else
+       begin     
+        document = REXML::Document.new(uri_result)
+        status = document.root.text("/result/status")
+        if(status.eql?("success")) then
+            document.elements.each("/result/stories/story") do |story|
+            meme = Meme.new story.text("title"), story.text("url"), @media, story.text("created_at"), story.text("excerpt")
+            memes[i] = meme
+            i=i+1
+          end
+          memes
+        end
+      rescue Exception => e
+        puts e.backtrace.inspect
+      end
     end
   end
   
