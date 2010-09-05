@@ -27,9 +27,9 @@ class TweetMeme
   attr_accessor :format
   attr_accessor :media
   attr_accessor :style
+  attr_accessor :category
 
   def initialize(format=Format::Json, category="technology", media=Media::News, style=Style::Day)
-    mavariable = 5
     self.format=format
     @category = category
     self.media = media
