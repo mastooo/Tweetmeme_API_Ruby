@@ -25,6 +25,7 @@ end
 class TweetMeme
   
   TWEET_MEME_URI = 'http://api.tweetmeme.com/stories/popular'
+  SUCCESS = "success"
   
   attr_accessor :format
   attr_accessor :media
@@ -79,39 +80,45 @@ class TweetMeme
          uri= add_param_to_uri(uri, :media.to_s, "#{@media}")
     end
     
-    uri_result = Net::HTTP.get URI.parse(uri)
-    memes = []
-    i = 0;
-    if(@format.eql?(Format::Json)) then
-      begin       
+    begin  
+      uri_result = Net::HTTP.get URI.parse(uri)
+      memes = []
+      i = 0;
+      if(@format.eql?(Format::Json)) then    
         json = JSON.parse(uri_result)
-        if(json["status"].eql?("success")) then
+        if(json["status"].eql?(SUCCESS)) then
           json["stories"].each do |story| 
-            meme = Meme.new story["title"], story["url"], @media, story["created_at"], story["excerpt"]
+            meme = parse_json_story(story)
             memes[i] = meme
             i=i+1
           end
           memes
         end
-      rescue Exception => e
-         puts e.backtrace.inspect
-      end
-    else
-       begin     
+      else
         document = REXML::Document.new(uri_result)
         status = document.root.text("/result/status")
-        if(status.eql?("success")) then
-            document.elements.each("/result/stories/story") do |story|
-            meme = Meme.new story.text("title"), story.text("url"), @media, story.text("created_at"), story.text("excerpt")
+        if(status.eql?(SUCCESS)) then
+          document.elements.each("/result/stories/story") do |story|
+            meme = parse_xml_story(story)
             memes[i] = meme
             i=i+1
           end
           memes
         end
-      rescue Exception => e
-        puts e.backtrace.inspect
       end
+    rescue Exception => e
+      puts e.backtrace.inspect
     end
+  end
+  
+  # This method return a story from a json story. Basically, it reads the field and creates the a Meme object
+  def parse_json_story(json_story)
+    Meme.new json_story["title"], json_story["url"], @media, json_story["created_at"], json_story["excerpt"]
+  end
+  
+  # This method return a story from a xml story. Basically, it reads the field and creates the a Meme object
+  def parse_xml_story(xml_story)
+    Meme.new xml_story["title"], xml_story["url"], @media, xml_story["created_at"], xml_story["excerpt"]
   end
   
   private

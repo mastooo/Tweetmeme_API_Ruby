@@ -75,9 +75,53 @@ class TestTest < Test::Unit::TestCase
         assert true
       end
   end
-
+  
+  def test_json_story_parsing
+    json_story = %!{"title":"Great way to wrap up leg one of the My World Tour. Proud of the kid. | Plixi",
+      "url":"http:\/\/plixi.com\/p\/43533509",
+      "media_type":"news",
+      "created_at":"2010-09-06 01:46:03",
+      "url_count":"1712",
+      "tm_link":"http:\/\/tweetmeme.com\/story\/2255899108",
+      "comment_count":"1",
+      "excerpt":"Great way to wrap up leg one of the My World Tour. Proud of the kid. http:\/\/plixi.com\/p\/43533509"}
+    !
+    t = TweetMeme.new
+    meme = t.parse_xml_story JSON.parse(json_story) 
+    verify(meme, t.media)
+  end
+  
+  def test_xml_story_parsing
+    xml_story = %!<stories><story><title>Great way to wrap up leg one of the My World Tour. Proud of the kid. | Plixi</title>
+    <url>http://plixi.com/p/43533509</url>
+    <media_type>news</media_type>
+    <created_at>2010-09-06 01:46:03</created_at>
+    <url_count>1731</url_count>
+    <tm_link>http://tweetmeme.com/story/2255899108</tm_link>
+    <comment_count>1</comment_count>
+    <excerpt>Great way to wrap up leg one of the My World Tour. Proud of the kid. http://plixi.com/p/43533509</excerpt>
+    </story></stories>
+    !
+    
+    t = TweetMeme.new
+    doc = REXML::Document.new(xml_story);
+    
+    doc.elements.each("/story") do |story|
+      meme = t.parse_xml_story(story)
+      puts meme.title
+      verify(meme, t.media)
+    end
+  end
+  
+  def verify (meme, media)
+    assert_equal meme.title, "Great way to wrap up leg one of the My World Tour. Proud of the kid. | Plixi"
+    assert_equal meme.url, "http://plixi.com/p/43533509"
+    assert_equal meme.media_type, media
+    assert_equal meme.created_at, "2010-09-06 01:46:03"
+    assert_equal meme.excerpt, "Great way to wrap up leg one of the My World Tour. Proud of the kid. http://plixi.com/p/43533509"
+  end
+  
 end
 
 t = TweetMeme.new(format=Format::Json, category="technology", media=Media::News, style=Style::Day)
 t.media = Media::Image
-puts t.getMemes().inspect
