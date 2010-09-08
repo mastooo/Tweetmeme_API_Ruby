@@ -87,7 +87,7 @@ class TestTest < Test::Unit::TestCase
       "excerpt":"Great way to wrap up leg one of the My World Tour. Proud of the kid. http:\/\/plixi.com\/p\/43533509"}
     !
     t = TweetMeme.new
-    meme = t.parse_xml_story JSON.parse(json_story) 
+    meme = t.parse_story JSON.parse(json_story) 
     verify(meme, t.media)
   end
   
@@ -125,3 +125,4 @@ end
 
 t = TweetMeme.new(format=Format::Json, category="technology", media=Media::News, style=Style::Day)
 t.media = Media::Image
+puts t.get_stories.inspect

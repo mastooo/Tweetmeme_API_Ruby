@@ -63,7 +63,7 @@ class TweetMeme
     end
   end
   
-  def getMemes
+  def get_stories
     uri = TWEET_MEME_URI+"."+@format;
     
     firstParam = true
@@ -79,8 +79,7 @@ class TweetMeme
     if (!@media.nil?) then
          uri= add_param_to_uri(uri, :media.to_s, "#{@media}")
     end
-    
-    begin  
+  
       uri_result = Net::HTTP.get URI.parse(uri)
       memes = []
       i = 0;
@@ -88,7 +87,7 @@ class TweetMeme
         json = JSON.parse(uri_result)
         if(json["status"].eql?(SUCCESS)) then
           json["stories"].each do |story| 
-            meme = parse_json_story(story)
+            meme = parse_story(story)
             memes[i] = meme
             i=i+1
           end
@@ -99,26 +98,18 @@ class TweetMeme
         status = document.root.text("/result/status")
         if(status.eql?(SUCCESS)) then
           document.elements.each("/result/stories/story") do |story|
-            meme = parse_xml_story(story)
+            meme = parse_story(story)
             memes[i] = meme
             i=i+1
           end
           memes
         end
       end
-    rescue Exception => e
-      puts e.backtrace.inspect
-    end
   end
   
-  # This method return a story from a json story. Basically, it reads the field and creates the a Meme object
-  def parse_json_story(json_story)
-    Meme.new json_story["title"], json_story["url"], @media, json_story["created_at"], json_story["excerpt"]
-  end
-  
-  # This method return a story from a xml story. Basically, it reads the field and creates the a Meme object
-  def parse_xml_story(xml_story)
-    Meme.new xml_story["title"], xml_story["url"], @media, xml_story["created_at"], xml_story["excerpt"]
+  # This method return a Story from a story (either in json or XML). Basically, it reads the field and creates the a Story object
+  def parse_story(story)
+    Story.new story["title"], story["url"], @media, story["created_at"], story["excerpt"]
   end
   
   private
@@ -135,7 +126,7 @@ class TweetMeme
   
 end
 
-class Meme
+class Story
   attr_reader :title
   attr_reader :url
   attr_reader :media_type
